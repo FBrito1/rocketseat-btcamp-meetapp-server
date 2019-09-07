@@ -1,7 +1,6 @@
 import Sequelize, { Model } from 'sequelize';
-import { isBefore } from 'date-fns';
 
-class Appointment extends Model {
+class Meetup extends Model {
   static init(sequelize) {
     super.init(
       {
@@ -9,13 +8,6 @@ class Appointment extends Model {
         description: Sequelize.STRING,
         locale: Sequelize.STRING,
         date: Sequelize.DATE,
-        canceled_at: Sequelize.DATE,
-        past: {
-          type: Sequelize.VIRTUAL,
-          get() {
-            return isBefore(this.date, new Date());
-          },
-        },
       },
       { sequelize }
     );
@@ -29,4 +21,4 @@ class Appointment extends Model {
   }
 }
 
-export default Appointment;
+export default Meetup;
