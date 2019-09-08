@@ -7,6 +7,7 @@ import UserController from './app/controllers/UserController';
 import FileController from './app/controllers/FileController';
 import MeetupController from './app/controllers/MeetupController';
 import MeetupOwnerController from './app/controllers/MeetupOwnerController';
+import SubscriptionController from './app/controllers/SubscriptionController';
 
 import authMiddleware from './app/middlewares/auth';
 
@@ -35,5 +36,8 @@ routes.delete('/meetups/:meetupId', MeetupController.delete);
 
 // Meetup Owner
 routes.get('/owner_meetups', MeetupOwnerController.index);
+
+// Subscription
+routes.post('/meetups/:meetupId/subscriptions', SubscriptionController.store);
 
 export default routes;
