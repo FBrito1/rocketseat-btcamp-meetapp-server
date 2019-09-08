@@ -5,6 +5,23 @@ import Queue from '../../lib/Queue';
 import ConfirmationMail from '../jobs/ConfirmationMail';
 
 class SubscriptionController {
+  async index(req, res) {
+    const subscriptions = await Subscription.findAll({
+      where: { user_id: req.userId },
+      attributes: ['id', 'user_id', 'meetup_id'],
+      include: [
+        {
+          model: Meetup,
+          as: 'meetup',
+          attributes: ['id', 'title', 'description', 'locale', 'date', 'past'],
+          order: ['date'],
+        },
+      ],
+    }).filter(sub => sub.meetup.past === false);
+
+    return res.json(subscriptions);
+  }
+
   async store(req, res) {
     const { meetupId } = req.params;
 
