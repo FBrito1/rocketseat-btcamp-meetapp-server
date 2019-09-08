@@ -2,34 +2,12 @@ import * as Yup from 'yup';
 import { startOfHour, parseISO, isBefore } from 'date-fns';
 
 import Meetup from '../models/Meetup';
-import User from '../models/User';
-import File from '../models/File';
+// import User from '../models/User';
+// import File from '../models/File';
 
 class MeetupController {
   async index(req, res) {
-    const { page = 1 } = req.query;
-
-    const meetups = await Meetup.findAll({
-      where: { user_id: req.userId },
-      order: ['date'],
-      attributes: ['id', 'title', 'description', 'locale'],
-      limit: 20,
-      offset: (page - 1) * 20,
-      include: [
-        {
-          model: User,
-          as: 'user',
-          attributes: ['id', 'name'],
-        },
-        {
-          model: File,
-          as: 'bannerFile',
-          attributes: ['id', 'path', 'url'],
-        },
-      ],
-    });
-
-    return res.json(meetups);
+    return res.json(true);
   }
 
   async store(req, res) {
@@ -69,18 +47,58 @@ class MeetupController {
     return res.json(meetup);
   }
 
+  async update(req, res) {
+    const { meetupId } = req.params;
+
+    const schema = Yup.object().shape({
+      title: Yup.string(),
+      description: Yup.string(),
+      locale: Yup.string(),
+      date: Yup.date(),
+      image: Yup.number().integer(),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({
+        error: 'Validation fails',
+      });
+    }
+
+    const { date } = req.body;
+
+    if (date) {
+      const hourStart = startOfHour(parseISO(date));
+
+      if (isBefore(hourStart, new Date())) {
+        return res.status(400).json({
+          error: 'Invalid date',
+        });
+      }
+    }
+
+    const meetup = await Meetup.findByPk(meetupId);
+
+    if (meetup.user_id !== req.userId) {
+      return res.status(401).json({
+        error: 'You dont have permission to update this meetup',
+      });
+    }
+
+    if (meetup.past) {
+      return res.status(400).json({
+        error: 'Cannot update past meetups',
+      });
+    }
+
+    const teste = await meetup.update(req.body);
+
+    return res.json(teste);
+  }
+
   async delete(req, res) {
     const { meetupId } = req.params;
 
-    const meetup = await Meetup.findByPk(meetupId, {
-      include: [
-        {
-          model: User,
-          as: 'user',
-          attributes: ['id', 'name'],
-        },
-      ],
-    });
+    const meetup = await Meetup.findByPk(meetupId);
 
     if (meetup.user_id !== req.userId) {
       return res.status(401).json({
