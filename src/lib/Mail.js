@@ -13,6 +13,9 @@ class Mail {
       port,
       secure,
       auth: auth.user ? auth : null,
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
 
     this.configureTemplates();

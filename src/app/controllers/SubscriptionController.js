@@ -1,6 +1,8 @@
 import Subscription from '../models/Subscription';
 import Meetup from '../models/Meetup';
 import User from '../models/User';
+import Queue from '../../lib/Queue';
+import ConfirmationMail from '../jobs/ConfirmationMail';
 
 class SubscriptionController {
   async store(req, res) {
@@ -58,7 +60,13 @@ class SubscriptionController {
       meetup_id: meetup.id,
     });
 
-    // Send Email Queue
+    const meetupOwner = await User.findByPk(meetup.user_id);
+
+    await Queue.add(ConfirmationMail.key, {
+      user,
+      meetup,
+      owner: meetupOwner,
+    });
 
     return res.json(subscription);
   }
