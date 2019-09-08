@@ -53,7 +53,7 @@ class MeetupController {
 
     if (isBefore(hourStart, new Date())) {
       return res.status(400).json({
-        error: 'Past dates are not permitted',
+        error: 'You cannot cancel past meetups',
       });
     }
 
@@ -67,6 +67,36 @@ class MeetupController {
     });
 
     return res.json(meetup);
+  }
+
+  async delete(req, res) {
+    const { meetupId } = req.params;
+
+    const meetup = await Meetup.findByPk(meetupId, {
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name'],
+        },
+      ],
+    });
+
+    if (meetup.user_id !== req.userId) {
+      return res.status(401).json({
+        error: 'You dont have permission to cancel this meetup',
+      });
+    }
+
+    if (meetup.past) {
+      return res.status(400).json({
+        error: 'Cannot cancel past meetups',
+      });
+    }
+
+    await Meetup.destroy({ where: { id: meetupId } });
+
+    return res.json({ message: 'success' });
   }
 }
 
